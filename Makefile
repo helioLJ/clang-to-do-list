@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-I.
-DEPS = ui.h
-OBJ = src/ui.o 
+CFLAGS=-Iinclude
+DEPS = include/ui.h
+OBJ = src/ui.o src/main.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
