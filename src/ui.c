@@ -18,18 +18,39 @@ FILE* open_file(const char* filename, const char* mode) {
     return file;
 }
 
+// Function to get the next task ID
+int get_task_id() {
+    int id;
+    FILE *id_file = open_file("id.txt", "r");
+    if (fscanf(id_file, "%d", &id) != 1) {
+        id = 0;
+    }
+    fclose(id_file);
+    return id + 1;
+}
+
+// Function to update the task ID
+void update_task_id(int id) {
+    FILE *id_file = open_file("id.txt", "w");
+    fprintf(id_file, "%d", id);
+    fclose(id_file);
+}
+
 void add_task() {
     char* task = get_task_name();
-    printf("\nAdding task: ** %s **\n", task);
+    int id = get_task_id();
+    printf("\nAdding task: ** %s ** with ID: ** %d **\n", task, id);
     FILE *file = open_file("tasks.txt", "a");
-    fprintf(file, "%s\n", task);
+    fprintf(file, "%d: %s\n", id, task);
     fclose(file);
     free(task);
+    update_task_id(id);
     view_to_do_list();
 }
 
 void mark_task_as_complete() {
-    char* task = get_task_name();
+    printf("Enter the ID of the task to mark as complete: ");
+    int id = get_task_id_from_user();
     char line[256];
     int task_found = 0;
 
@@ -38,7 +59,9 @@ void mark_task_as_complete() {
 
     while (fgets(line, sizeof(line), file) != NULL) {
         remove_newline(line);
-        if (strcmp(line, task) == 0) {
+        int current_id;
+        sscanf(line, "%d:", &current_id);
+        if (current_id == id) {
             fprintf(temp, "%s (Complete)\n", line);
             printf("\nMarking task as complete: ** %s **\n", line);
             task_found = 1;
@@ -55,26 +78,26 @@ void mark_task_as_complete() {
     rename("temp.txt", "tasks.txt");
 
     if (!task_found) {
-        printf("\nTask not found: ** %s **\n", task);
+        printf("\nTask not found: ** %d **\n", id);
     }
 
     view_to_do_list();
 }
 
 void delete_task() {
-    char* task = get_task_name();
+    printf("Enter the ID of the task to delete: ");
+    int id = get_task_id_from_user();
     char line[256];
-    char completed_task[256];
     int task_found = 0;
-
-    sprintf(completed_task, "%s (Complete)", task);  // Create the completed task string
 
     FILE *file = open_file("tasks.txt", "r");
     FILE *temp = open_file("temp.txt", "w");
 
     while (fgets(line, sizeof(line), file) != NULL) {
         remove_newline(line);
-        if (strcmp(line, task) != 0 && strcmp(line, completed_task) != 0) {
+        int current_id;
+        sscanf(line, "%d:", &current_id);
+        if (current_id != id) {
             fprintf(temp, "%s\n", line);
         } else {
             task_found = 1;
@@ -89,11 +112,12 @@ void delete_task() {
     rename("temp.txt", "tasks.txt");
 
     if (!task_found) {
-        printf("\nTask not found: ** %s **\n", task);
+        printf("\nTask not found: ** %d **\n", id);
     }
 
     view_to_do_list();
 }
+
 void view_to_do_list() {
     char task[256];
     FILE *file = fopen("tasks.txt", "r");
@@ -132,9 +156,20 @@ int get_user_choice() {
     int choice;
     if (scanf("%d", &choice) != 1) {
         printf("Invalid input. Please enter a number.\n");
+        while(getchar() != '\n');  // Clear input buffer
         handle_user_input();
     }
     return choice;
+}
+
+int get_task_id_from_user() {
+    int id;
+    if (scanf("%d", &id) != 1) {
+        printf("Invalid input. Please enter a number.\n");
+        while(getchar() != '\n');  // Clear input buffer
+        handle_user_input();
+    }
+    return id;
 }
 
 char* get_task_name() {
@@ -161,11 +196,9 @@ void handle_user_input() {
             add_task();
             break;
         case 2:
-            printf("Enter the task name to mark as complete: ");
             mark_task_as_complete();
             break;
         case 3:
-            printf("Enter the task name to delete: ");
             delete_task();
             break;
         case 4:
@@ -176,7 +209,7 @@ void handle_user_input() {
             break;
         default:
             printf("Invalid choice. Please enter a number between 1 and 5.\n");
-            handle_user_input();
+            choice = get_user_choice();
             break;
     }
 }

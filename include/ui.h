@@ -11,5 +11,6 @@ void delete_task();
 void exit_application();
 void display_menu();
 int get_user_choice();
+int get_task_id_from_user();
 
 #endif // UI_H
