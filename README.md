@@ -1,4 +1,7 @@
 # To-Do List Application Documentation
+
+![Application GIF](./clang-todo-list.gif)
+
 ## Building the Application
 This application uses a Makefile for building. To build the application, navigate to the project directory in your terminal and run the following command:
 ```bash
